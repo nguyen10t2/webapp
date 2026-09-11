@@ -6,7 +6,6 @@ export const queryKeys = {
     groupSummary: (id: string) => ['group', id, 'summary'],
     groupMembers: (id: string) => ['group', id, 'members'],
     groupExpenses: (id: string, page: number) => ['group', id, 'expenses', page],
-    expense: (id: string) => ['expense', id],
-    groupSettlements: (id: string, page: number) => ['group', id, 'settlements', page],
+    expense: (id: string) => ['expense', id],    groupSettlements: (id: string, page: number) => ['group', id, 'settlements', page],
     userLookup: (key: string) => ['user-lookup', key],
 } as const

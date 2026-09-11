@@ -1,6 +1,9 @@
 /** Vai trò trong nhóm (backend `GroupRole`). */
 export type GroupRole = 'OWNER' | 'ADMIN' | 'MEMBER'
 
+/** Loại chia tiền (backend `SplitType`). */
+export type SplitType = 'EQUAL' | 'EXACT' | 'PERCENTAGE'
+
 export type Currency = 'USD' | 'VND'
 
 /** Nhóm — `GET /api/groups` kèm `userBalance` (số dư ròng của mình, đơn vị nhỏ nhất). */

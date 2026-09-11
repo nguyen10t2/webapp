@@ -1,35 +1,110 @@
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Users } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { useIsFetching, useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft, Check, Copy, Plus, RefreshCw, Users } from 'lucide-react'
+import { toast } from 'sonner'
 import { useMe } from '@/features/auth/api'
 import { useGroup, useGroupMembers } from '@/features/groups/api'
 import { SummaryPanel } from '@/features/groups/summary-panel'
+import { ExpenseHistory } from '@/features/expenses/expense-history'
 import { MemberList } from '@/features/groups/member-list'
+import { MemberDebtDialog } from '@/features/groups/member-debt-dialog'
 import { initials } from '@/shared/lib/names'
-import { InviteCodeBox } from '@/features/groups/invite-code-box'
-import { AddMemberDialog } from '@/features/groups/add-member-dialog'
-import { isGroupAdmin } from '@/domain/groups'
+import { isGroupAdmin, type GroupMember } from '@/domain/groups'
+import { queryKeys } from '@/infrastructure/query/keys'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/field'
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar'
 import { Skeleton } from '@/shared/ui/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+
+/** Header 1 section: tiêu đề + nút làm mới riêng (manual refetch, không reload trang). */
+function SectionHeader({
+    title,
+    refreshing,
+    onRefresh,
+    action,
+    children,
+}: {
+    title: string
+    refreshing: boolean
+    onRefresh: () => void
+    action?: ReactNode
+    children: ReactNode
+}) {
+    const { t } = useTranslation()
+    return (
+        <section aria-label={title} className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-xl font-semibold">{title}</h2>
+                <div className="flex items-center gap-2">
+                    {action}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={refreshing}
+                        onClick={onRefresh}
+                        aria-label={t('groups.refresh')}
+                    >
+                        <RefreshCw className={refreshing ? 'motion-safe:animate-spin' : ''} aria-hidden="true" />
+                        {t('groups.refresh')}
+                    </Button>
+                </div>
+            </div>
+            {children}
+        </section>
+    )
+}
+
+/** Mã mời gọn cạnh tên nhóm: code mono + nút copy icon (fallback toast khi bị chặn). */
+function InlineInviteCode({ code }: { code: string }) {
+    const { t } = useTranslation()
+    const [copied, setCopied] = useState(false)
+    return (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-muted py-1 pr-1 pl-3">
+            <span className="font-mono text-sm font-bold tracking-widest">{code}</span>
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                    navigator.clipboard
+                        .writeText(code)
+                        .then(() => {
+                            setCopied(true)
+                            toast.success(t('groups.copied'))
+                            setTimeout(() => setCopied(false), 2000)
+                        })
+                        .catch(() => toast.error(t('errors.UNKNOWN_ERROR')))
+                }}
+                aria-label={t('groups.copyInvite')}
+                className="size-7 rounded-full px-0"
+            >
+                {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+            </Button>
+        </span>
+    )
+}
 
 /**
- * Chi tiết nhóm: tab Tổng quan (summary) + Thành viên.
- * Nút Thêm thành viên chỉ hiện khi mình là ADMIN (server vẫn enforce).
+ * Chi tiết nhóm 1 màn hình: header band (mã mời gọn cạnh tên) + layout 2 cột
+ * (sidebar thành viên sticky trái, nội dung phải). Không tabs, không cuộn tìm.
  */
 export function GroupDetailPage() {
     const { t } = useTranslation()
     const { id = '' } = useParams()
-    const [params, setParams] = useSearchParams()
-    const tab = params.get('tab') === 'members' ? 'members' : 'overview'
+    const queryClient = useQueryClient()
 
     const me = useMe()
     const group = useGroup(id)
     const members = useGroupMembers(id)
+    const [selected, setSelected] = useState<GroupMember | null>(null)
     const myRole = members.data?.find((m) => m.userId === me.data?.id)?.role
     const admin = isGroupAdmin(myRole)
+
+    const summaryFetching = useIsFetching({ queryKey: queryKeys.groupSummary(id) }) > 0
+    const expensesFetching = useIsFetching({ queryKey: ['group', id, 'expenses'] }) > 0
+    const membersFetching = useIsFetching({ queryKey: queryKeys.groupMembers(id) }) > 0
 
     if (group.isPending) {
         return (
@@ -71,7 +146,10 @@ export function GroupDetailPage() {
                         <ArrowLeft className="size-4" aria-hidden="true" />
                         {t('groups.backToGroups')}
                     </Link>
-                    <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{group.data.name}</h1>
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{group.data.name}</h1>
+                        <InlineInviteCode code={group.data.inviteCode} />
+                    </div>
                     {group.data.description && (
                         <p className="mt-1 max-w-2xl text-base text-muted-foreground">{group.data.description}</p>
                     )}
@@ -98,17 +176,25 @@ export function GroupDetailPage() {
                 </div>
             </div>
 
-            <Tabs value={tab} onValueChange={(next) => setParams(next === 'members' ? { tab: 'members' } : {})}>
-                <TabsList aria-label={group.data.name}>
-                    <TabsTrigger value="overview">{t('groups.overview')}</TabsTrigger>
-                    <TabsTrigger value="members">{t('groups.members')}</TabsTrigger>
-                </TabsList>
-                <TabsContent value="overview">
-                    <SummaryPanel groupId={id} currency={group.data.defaultCurrency} />
-                </TabsContent>
-                <TabsContent value="members">
-                    <div className="space-y-4">
-                        <InviteCodeBox code={group.data.inviteCode} />
+            <div className="grid items-start gap-6 lg:grid-cols-[300px_1fr]">
+                <aside aria-label={t('groups.members')} className="space-y-4 lg:sticky lg:top-4">
+                    <SectionHeader
+                        title={t('groups.members')}
+                        refreshing={membersFetching}
+                        onRefresh={() => void queryClient.invalidateQueries({ queryKey: queryKeys.groupMembers(id) })}
+                        action={
+                            admin ? (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => toast.info(t('groups.addMemberSoon'))}
+                                >
+                                    <Plus aria-hidden="true" />
+                                    {t('groups.addMember')}
+                                </Button>
+                            ) : undefined
+                        }
+                    >
                         {members.isPending ? (
                             <div aria-busy="true" aria-label="Loading">
                                 <Skeleton className="h-16 rounded-lg" />
@@ -118,22 +204,45 @@ export function GroupDetailPage() {
                                 {t(`errors.${members.error.code}`)}
                             </p>
                         ) : (
-                            <MemberList members={members.data} />
+                            <MemberList members={members.data} onSelect={setSelected} />
                         )}
-                        {admin && (
-                            <AddMemberDialog
-                                groupId={id}
-                                trigger={
-                                    <Button>
-                                        <Plus aria-hidden="true" />
-                                        {t('groups.addMember')}
-                                    </Button>
-                                }
-                            />
-                        )}
-                    </div>
-                </TabsContent>
-            </Tabs>
+                    </SectionHeader>
+                </aside>
+
+                <div className="min-w-0 space-y-8">
+                    <SectionHeader
+                        title={t('groups.overview')}
+                        refreshing={summaryFetching}
+                        onRefresh={() => void queryClient.invalidateQueries({ queryKey: queryKeys.groupSummary(id) })}
+                    >
+                        <SummaryPanel groupId={id} currency={group.data.defaultCurrency} />
+                    </SectionHeader>
+
+                    <SectionHeader
+                        title={t('expenses.title')}
+                        refreshing={expensesFetching}
+                        onRefresh={() => void queryClient.invalidateQueries({ queryKey: ['group', id, 'expenses'] })}
+                        action={
+                            <Button asChild>
+                                <Link to={`/groups/${id}/expenses/new`}>
+                                    <Plus aria-hidden="true" />
+                                    {t('expenses.newExpense')}
+                                </Link>
+                            </Button>
+                        }
+                    >
+                        <ExpenseHistory key={id} groupId={id} currency={group.data.defaultCurrency} />
+                    </SectionHeader>
+                </div>
+            </div>
+
+            <MemberDebtDialog
+                member={selected}
+                meId={me.data?.id}
+                groupId={id}
+                currency={group.data.defaultCurrency}
+                onClose={() => setSelected(null)}
+            />
         </main>
     )
 }

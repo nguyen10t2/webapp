@@ -1,29 +1,58 @@
 import { useTranslation } from 'react-i18next'
+import { ChevronRight } from 'lucide-react'
 import type { GroupMember } from '@/domain/groups'
 import { initials } from '@/shared/lib/names'
 import { Avatar, AvatarFallback } from '@/shared/ui/avatar'
+import { cn } from '@/shared/lib/cn'
 
-/** Danh sách thành viên + role badge. */
-export function MemberList({ members }: { members: GroupMember[] }) {
+/**
+ * Danh sách thành viên dọc. Truyền `onSelect` để mỗi dòng thành nút bấm
+ * mở popup công nợ (không truyền thì chỉ hiển thị).
+ */
+export function MemberList({ members, onSelect }: { members: GroupMember[]; onSelect?: (m: GroupMember) => void }) {
     const { t } = useTranslation()
     return (
         <ul className="space-y-3">
-            {members.map((m) => (
-                <li
-                    key={m.userId}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
-                >
-                    <span className="flex min-w-0 items-center gap-3">
-                        <Avatar aria-hidden="true">
-                            <AvatarFallback>{initials(m.fullName)}</AvatarFallback>
-                        </Avatar>
-                        <span className="truncate text-base font-medium">{m.fullName}</span>
-                    </span>
-                    <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
-                        {m.role === 'ADMIN' || m.role === 'OWNER' ? t('groups.roleAdmin') : t('groups.roleMember')}
-                    </span>
-                </li>
-            ))}
+            {members.map((m) => {
+                const row = (
+                    <>
+                        <span className="flex min-w-0 items-center gap-3">
+                            <Avatar aria-hidden="true">
+                                <AvatarFallback>{initials(m.fullName)}</AvatarFallback>
+                            </Avatar>
+                            <span className="truncate text-base font-medium">{m.fullName}</span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2">
+                            <span className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
+                                {m.role === 'ADMIN' || m.role === 'OWNER' ? t('groups.roleAdmin') : t('groups.roleMember')}
+                            </span>
+                            {onSelect && <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />}
+                        </span>
+                    </>
+                )
+                return (
+                    <li key={m.userId}>
+                        {onSelect ? (
+                            <button
+                                type="button"
+                                onClick={() => onSelect(m)}
+                                aria-label={`${m.fullName} — ${t('groups.viewDebt')}`}
+                                className={cn(
+                                    'flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 text-left',
+                                    'transition-all duration-150 outline-none hover:-translate-y-0.5 hover:border-ring hover:shadow-lift',
+                                    'focus-visible:ring-2 focus-visible:ring-ring motion-reduce:hover:translate-y-0',
+                                )}
+                            >
+                                {row}
+                            </button>
+                        ) : (
+                            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+                                {row}
+                            </div>
+                        )}
+                    </li>
+                )
+            })}
         </ul>
     )
 }
