@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { useQueries } from '@tanstack/react-query'
 import { Receipt } from 'lucide-react'
 import type { Currency } from '@/domain/groups/types'
 import { groupExpensesByMonth } from '@/domain/expenses'
 import { fetchGroupExpensesPage } from '@/features/expenses/api'
+import { ExpenseDetailDialog } from '@/features/expenses/expense-detail-dialog'
 import { useAuthStore } from '@/infrastructure/auth/auth-store'
 import { queryKeys } from '@/infrastructure/query/keys'
 import { apiErrorMessage } from '@/features/auth/helpers'
@@ -30,7 +30,17 @@ function dayLabel(iso: string, locale: string): string {
  * không đủ thì "Tải thêm") rồi group client-side. Parent render với `key={groupId}`
  * để đổi nhóm là reset page (không setState trong effect).
  */
-export function ExpenseHistory({ groupId, currency }: { groupId: string; currency: Currency }) {
+export function ExpenseHistory({
+    groupId,
+    currency,
+    meId,
+    admin,
+}: {
+    groupId: string
+    currency: Currency
+    meId: string | undefined
+    admin: boolean
+}) {
     const { t, i18n } = useTranslation()
     const status = useAuthStore((s) => s.status)
     const [pageCount, setPageCount] = useState(1)
@@ -98,21 +108,29 @@ export function ExpenseHistory({ groupId, currency }: { groupId: string; currenc
                     <ul className="space-y-2">
                         {section.items.map((expense) => (
                             <li key={expense.id}>
-                                <Link
-                                    to={`/groups/${groupId}/expenses/${expense.id}`}
-                                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 outline-none transition-all duration-150 hover:-translate-y-0.5 hover:border-ring hover:shadow-lift focus-visible:ring-2 focus-visible:ring-ring motion-reduce:hover:translate-y-0"
-                                >
-                                    <span className="min-w-0">
-                                        <span className="block truncate text-base font-medium">{expense.description}</span>
-                                        <span className="block text-sm text-muted-foreground">
-                                            {dayLabel(expense.expenseDate, i18n.language)}
-                                            {expense.payerName ? ` · ${expense.payerName} ${t('expenses.paidBy')}` : ''}
-                                        </span>
-                                    </span>
-                                    <span className="shrink-0 font-mono text-base font-bold">
-                                        {formatMoney(expense.amount, expense.currency, i18n.language)}
-                                    </span>
-                                </Link>
+                                <ExpenseDetailDialog
+                                    expenseId={expense.id}
+                                    groupId={groupId}
+                                    meId={meId}
+                                    admin={admin}
+                                    trigger={
+                                        <button
+                                            type="button"
+                                            className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 text-left outline-none transition-colors duration-150 hover:border-ring hover:shadow-lift focus-visible:ring-2 focus-visible:ring-ring"
+                                        >
+                                            <span className="min-w-0">
+                                                <span className="block truncate text-base font-medium">{expense.description}</span>
+                                                <span className="block text-sm text-muted-foreground">
+                                                    {dayLabel(expense.expenseDate, i18n.language)}
+                                                    {expense.payerName ? ` · ${expense.payerName} ${t('expenses.paidBy')}` : ''}
+                                                </span>
+                                            </span>
+                                            <span className="shrink-0 font-mono text-base font-bold">
+                                                {formatMoney(expense.amount, expense.currency, i18n.language)}
+                                            </span>
+                                        </button>
+                                    }
+                                />
                             </li>
                         ))}
                     </ul>

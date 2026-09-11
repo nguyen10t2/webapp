@@ -8,10 +8,6 @@ import type { AddMemberInput, CreateGroupInput, JoinGroupInput } from '@/domain/
 import type { Group, GroupMember, GroupSummary } from '@/domain/groups'
 import type { AuthUser } from '@/domain/auth'
 
-function onlyAuthenticated() {
-    return useAuthStore.getState().status === 'authenticated'
-}
-
 /** Danh sách nhóm mình tham gia (kèm `userBalance` từng nhóm). */
 export function useGroups() {
     const status = useAuthStore((s) => s.status)
@@ -32,6 +28,7 @@ export function useGroups() {
 
 /** Chi tiết 1 nhóm (thành viên mới xem được). */
 export function useGroup(id: string) {
+    const status = useAuthStore((s) => s.status)
     return useQuery<Group, ApiError>({
         queryKey: queryKeys.group(id),
         queryFn: async (): Promise<Group> => {
@@ -42,7 +39,7 @@ export function useGroup(id: string) {
                 throw toApiError(error)
             }
         },
-        enabled: onlyAuthenticated() && id.length > 0,
+        enabled: status === 'authenticated' && id.length > 0,
         staleTime: 60_000,
     })
 }
@@ -52,6 +49,7 @@ export function useGroup(id: string) {
  * (`config/constants.rs:34`) — set ngắn hơn không cho data mới hơn.
  */
 export function useGroupSummary(id: string) {
+    const status = useAuthStore((s) => s.status)
     return useQuery<GroupSummary, ApiError>({
         queryKey: queryKeys.groupSummary(id),
         queryFn: async (): Promise<GroupSummary> => {
@@ -62,13 +60,14 @@ export function useGroupSummary(id: string) {
                 throw toApiError(error)
             }
         },
-        enabled: onlyAuthenticated() && id.length > 0,
+        enabled: status === 'authenticated' && id.length > 0,
         staleTime: 60_000,
     })
 }
 
 /** Thành viên nhóm — dùng cho list + picker (cache, mở dialog không fetch lại nếu fresh). */
 export function useGroupMembers(id: string) {
+    const status = useAuthStore((s) => s.status)
     return useQuery<GroupMember[], ApiError>({
         queryKey: queryKeys.groupMembers(id),
         queryFn: async (): Promise<GroupMember[]> => {
@@ -79,7 +78,7 @@ export function useGroupMembers(id: string) {
                 throw toApiError(error)
             }
         },
-        enabled: onlyAuthenticated() && id.length > 0,
+        enabled: status === 'authenticated' && id.length > 0,
         staleTime: 60_000,
     })
 }

@@ -31,6 +31,9 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:30
 export const api: AxiosInstance = axios.create({
     baseURL: API_BASE_URL,
     withCredentials: true,
+    // Timeout để request treo (backend chết giữa chừng) thành lỗi hiển thị được,
+    // thay vì skeleton quay vô hạn.
+    timeout: 15_000,
     headers: { 'Content-Type': 'application/json' },
 })
 

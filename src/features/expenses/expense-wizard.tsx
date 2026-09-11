@@ -25,17 +25,20 @@ function todayInput(): string {
 /**
  * Wizard tạo expense 3 bước: thông tin → người tham gia → chia tiền.
  * Validate zod đúng luật backend trước khi POST (tránh 400 tốn round-trip).
+ * `onDone` để caller đóng popup; không truyền thì navigate về trang nhóm (dùng ở route).
  */
 export function ExpenseWizard({
     groupId,
     members,
     defaultCurrency,
     myId,
+    onDone,
 }: {
     groupId: string
     members: GroupMember[]
     defaultCurrency: Currency
     myId: string | undefined
+    onDone?: () => void
 }) {
     const { t } = useTranslation()
     const navigate = useNavigate()
@@ -43,7 +46,8 @@ export function ExpenseWizard({
     const [step, setStep] = useState<Step>('info')
 
     const [amount, setAmount] = useState('')
-    const [currency, setCurrency] = useState<Currency>(defaultCurrency)
+    // Currency khóa cứng theo nhóm (không cho chọn — backend tính công nợ theo currency của expense).
+    const currency = defaultCurrency
     const [description, setDescription] = useState('')
     const [expenseDate, setExpenseDate] = useState(todayInput)
     const [payerId, setPayerId] = useState(myId && members.some((m) => m.userId === myId) ? myId : (members[0]?.userId ?? ''))
@@ -53,6 +57,22 @@ export function ExpenseWizard({
 
     const participants = members.filter((m) => participantIds.includes(m.userId))
     const total = Number(amount) || 0
+
+    /** Split hiện tại đã khớp chưa — chưa khớp thì ẩn/khóa nút Lưu (tránh POST lỗi). */
+    const splitValid = (() => {
+        const ids = participants.map((m) => m.userId)
+        if (split.splitType === 'EQUAL') return true
+        if (split.splitType === 'EXACT') {
+            return ids.reduce((sum, id) => sum + (Number(split.entries[id]) || 0), 0) === total
+        }
+        let units = 0
+        for (const id of ids) {
+            const u = percentToUnits(split.entries[id] ?? '')
+            if (u === null) return false
+            units += u
+        }
+        return units === 10000
+    })()
 
     const toggleParticipant = (id: string) =>
         setParticipantIds((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
@@ -105,7 +125,8 @@ export function ExpenseWizard({
         createExpense.mutate(parsed.data, {
             onSuccess: () => {
                 toast.success(t('expenses.createSuccess'))
-                navigate(`/groups/${groupId}`, { replace: true })
+                if (onDone) onDone()
+                else navigate(`/groups/${groupId}`, { replace: true })
             },
             onError: (error) => toast.error(apiErrorMessage(t, error)),
         })
@@ -119,7 +140,7 @@ export function ExpenseWizard({
 
             {step === 'info' && (
                 <div className="space-y-4">
-                    <Field label={t('expenses.amount')} htmlFor="exp-amount">
+                    <Field label={currency === 'VND' ? t('expenses.amountVND') : t('expenses.amountUSD')} htmlFor="exp-amount">
                         <div className="flex gap-2">
                             <Input
                                 id="exp-amount"
@@ -129,18 +150,12 @@ export function ExpenseWizard({
                                 onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))}
                                 className="font-mono"
                             />
-                            {(['VND', 'USD'] as const).map((c) => (
-                                <Button
-                                    key={c}
-                                    type="button"
-                                    variant={currency === c ? 'secondary' : 'outline'}
-                                    onClick={() => setCurrency(c)}
-                                    aria-pressed={currency === c}
-                                    className="shrink-0 font-mono"
-                                >
-                                    {c}
-                                </Button>
-                            ))}
+                            <span
+                                aria-hidden="true"
+                                className="flex shrink-0 items-center rounded-md border border-border bg-muted px-4 font-mono text-base text-muted-foreground"
+                            >
+                                {currency}
+                            </span>
                         </div>
                     </Field>
                     <Field label={t('expenses.description')} htmlFor="exp-desc">
@@ -244,7 +259,7 @@ export function ExpenseWizard({
                         <Button variant="outline" onClick={() => setStep('members')} className="flex-1">
                             {t('expenses.back')}
                         </Button>
-                        <Button disabled={createExpense.isPending} onClick={submit} className="flex-1">
+                        <Button disabled={createExpense.isPending || !splitValid} onClick={submit} className="flex-1">
                             {createExpense.isPending ? t('expenses.saving') : t('expenses.saveExpense')}
                         </Button>
                     </div>

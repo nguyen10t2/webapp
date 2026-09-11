@@ -11,6 +11,7 @@ import { SummaryPanel } from '@/features/groups/summary-panel'
 import { ExpenseHistory } from '@/features/expenses/expense-history'
 import { MemberList } from '@/features/groups/member-list'
 import { MemberDebtDialog } from '@/features/groups/member-debt-dialog'
+import { NewExpenseDialog } from '@/features/expenses/new-expense-dialog'
 import { initials } from '@/shared/lib/names'
 import { isGroupAdmin, type GroupMember } from '@/domain/groups'
 import { queryKeys } from '@/infrastructure/query/keys'
@@ -222,16 +223,25 @@ export function GroupDetailPage() {
                         title={t('expenses.title')}
                         refreshing={expensesFetching}
                         onRefresh={() => void queryClient.invalidateQueries({ queryKey: ['group', id, 'expenses'] })}
-                        action={
-                            <Button asChild>
-                                <Link to={`/groups/${id}/expenses/new`}>
+                action={
+                    members.data ? (
+                        <NewExpenseDialog
+                            groupId={id}
+                            groupName={group.data.name}
+                            members={members.data}
+                            defaultCurrency={group.data.defaultCurrency}
+                            myId={me.data?.id}
+                            trigger={
+                                <Button>
                                     <Plus aria-hidden="true" />
                                     {t('expenses.newExpense')}
-                                </Link>
-                            </Button>
-                        }
+                                </Button>
+                            }
+                        />
+                    ) : undefined
+                }
                     >
-                        <ExpenseHistory key={id} groupId={id} currency={group.data.defaultCurrency} />
+                            <ExpenseHistory key={id} groupId={id} currency={group.data.defaultCurrency} meId={me.data?.id} admin={admin} />
                     </SectionHeader>
                 </div>
             </div>

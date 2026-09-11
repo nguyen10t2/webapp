@@ -132,6 +132,8 @@
         "stepMembers": "Step 2 of 3 · Participants",
         "stepSplit": "Step 3 of 3 · Split",
         "amount": "Amount",
+        "amountVND": "Amount (đồng)",
+        "amountUSD": "Amount (cents)",
         "description": "Description",
         "descriptionPlaceholder": "Dinner in Da Lat",
         "expenseDate": "Date",
