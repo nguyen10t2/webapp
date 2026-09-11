@@ -42,6 +42,10 @@ export const router = createBrowserRouter([
                 path: '/',
                 lazy: () => import('@/app/pages/dashboard-page').then((m) => ({ Component: m.DashboardPage })),
             },
+            {
+                path: '/groups/:id',
+                lazy: () => import('@/app/pages/group-detail-page').then((m) => ({ Component: m.GroupDetailPage })),
+            },
         ],
     },
     { path: '*', element: <Navigate to="/" replace /> },

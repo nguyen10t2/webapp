@@ -16,8 +16,7 @@ export const authEndpoints = {
 } as const
 
 /** Endpoint có 401 là lỗi credential (sai pass/OTP) — KHÔNG kích hoạt silent refresh. */
-export const NO_SILENT_REFRESH_PATHS: readonly string[] = [
-    authEndpoints.signin,
+export const NO_SILENT_REFRESH_PATHS: readonly string[] = [    authEndpoints.signin,
     authEndpoints.signup,
     authEndpoints.requestOtp,
     authEndpoints.verifyOtp,
@@ -25,3 +24,26 @@ export const NO_SILENT_REFRESH_PATHS: readonly string[] = [
     authEndpoints.resetPassword,
     authEndpoints.refresh,
 ]
+
+/**
+ * Path builders groups. Nguồn: `docs/api.json` (groups).
+ * `{id}` là uuid nhóm — luôn `encodeURIComponent` ở caller dùng helper dưới.
+ */
+export const groupEndpoints = {
+    list: '/api/groups',
+    create: '/api/groups',
+    join: '/api/groups/join',
+    byId: (id: string) => `/api/groups/${encodeURIComponent(id)}`,
+    summary: (id: string) => `/api/groups/${encodeURIComponent(id)}/summary`,
+    members: (id: string) => `/api/groups/${encodeURIComponent(id)}/members`,
+} as const
+
+/** Settlements tối thiểu M2 cần (1-click ghi nhận từ suggestion). */
+export const settlementEndpoints = {
+    create: '/api/settlements',
+} as const
+
+/** Tra cứu user theo email chính xác (phục vụ AddMember) — cần đăng nhập. */
+export const userEndpoints = {
+    byEmail: (email: string) => `/api/users/email/${encodeURIComponent(email)}`,
+} as const

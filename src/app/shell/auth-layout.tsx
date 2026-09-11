@@ -64,6 +64,7 @@ function ArtCard() {
 export function AuthLayout() {
     return (
         <main className="relative min-h-dvh overflow-hidden bg-background">
+            <div className="bg-dots absolute inset-0" aria-hidden="true" />
             <div
                 className="absolute inset-0 bg-linear-to-bl from-primary/15 via-background to-background"
                 aria-hidden="true"

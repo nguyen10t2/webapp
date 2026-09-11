@@ -6,7 +6,7 @@
     "tailwind": {
         "config": "",
         "css": "src/tokens/theme.css",
-        "baseColor": "emerald",
+        "baseColor": "neutral",
         "cssVariables": true
     },
     "aliases": {

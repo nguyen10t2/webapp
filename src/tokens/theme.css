@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -15,6 +16,7 @@
 
     --color-primary: #059669;
     --color-primary-foreground: #ffffff;
+    --color-primary-deep: #047857;
     --color-secondary: #10b981;
     --color-secondary-foreground: #0f172a;
     --color-accent: #dc2626;
@@ -26,15 +28,20 @@
     --color-muted: #f0f8f6;
     --color-muted-foreground: #475569;
     --color-border: #e1f2ed;
+    --color-input: #e1f2ed;
     --color-ring: #059669;
     --color-destructive: #dc2626;
     --color-destructive-foreground: #ffffff;
+    --color-popover: #ffffff;
+    --color-popover-foreground: #0f172a;
+    --shadow-lift: 0 12px 28px -14px rgb(5 150 105 / 0.35);
 }
 
 /* Dark mode: map lại cùng tokens, không hardcode hex từng màn hình. */
 .dark {
     --color-primary: #10b981;
     --color-primary-foreground: #022c22;
+    --color-primary-deep: #059669;
     --color-secondary: #059669;
     --color-secondary-foreground: #ecfdf5;
     --color-accent: #f87171;
@@ -46,13 +53,23 @@
     --color-muted: #0f2922;
     --color-muted-foreground: #94a3b8;
     --color-border: #1e3a32;
+    --color-input: #1e3a32;
     --color-ring: #10b981;
     --color-destructive: #f87171;
     --color-destructive-foreground: #450a0a;
+    --color-popover: #0f172a;
+    --color-popover-foreground: #f1f5f9;
+    --shadow-lift: 0 12px 28px -12px rgb(0 0 0 / 0.6);
 }
 
 body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+}
+
+/* Pattern chấm chìm cho hero/band trang trí (CSS thuần, không arbitrary values). */
+.bg-dots {
+    background-image: radial-gradient(rgb(5 150 105 / 0.16) 1px, transparent 1px);
+    background-size: 18px 18px;
 }
