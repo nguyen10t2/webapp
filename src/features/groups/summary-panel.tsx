@@ -10,7 +10,15 @@ import { Avatar, AvatarFallback } from '@/shared/ui/avatar'
 import { SuggestionsList } from '@/features/groups/suggestions-list'
 
 /** Tổng quan nhóm: bảng công nợ thành viên + gợi ý trả nợ. */
-export function SummaryPanel({ groupId, currency }: { groupId: string; currency: Currency }) {
+export function SummaryPanel({
+    groupId,
+    currency,
+    meId,
+}: {
+    groupId: string
+    currency: Currency
+    meId: string | undefined
+}) {
     const { t, i18n } = useTranslation()
     const summary = useGroupSummary(groupId)
 
@@ -96,7 +104,7 @@ export function SummaryPanel({ groupId, currency }: { groupId: string; currency:
             </section>
             <section aria-label={t('groups.suggestions')}>
                 <h2 className="mb-3 text-xl font-semibold">{t('groups.suggestions')}</h2>
-                <SuggestionsList groupId={groupId} suggestions={data.suggestions} currency={currency} />
+                <SuggestionsList groupId={groupId} suggestions={data.suggestions} currency={currency} meId={meId} />
             </section>
         </div>
     )

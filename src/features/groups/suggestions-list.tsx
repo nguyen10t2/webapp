@@ -10,15 +10,19 @@ import { Button } from '@/shared/ui/button'
 /**
  * Gợi ý trả nợ tối thiểu + nút 1-click ghi nhận (không cần form).
  * Ghi xong invalidate summary/groups nên số dư cập nhật không F5.
+ * Chỉ sender/receiver của từng suggestion được bấm (server enforce
+ * `NotSettlementParty` — đây chỉ là gating UX, `meId` undefined thì disable).
  */
 export function SuggestionsList({
     groupId,
     suggestions,
     currency,
+    meId,
 }: {
     groupId: string
     suggestions: SettlementSuggestion[]
     currency: Currency
+    meId: string | undefined
 }) {
     const { t, i18n } = useTranslation()
     const record = useRecordSettlement(groupId)
@@ -29,7 +33,9 @@ export function SuggestionsList({
 
     return (
         <ul className="space-y-3">
-            {suggestions.map((s) => (
+            {suggestions.map((s) => {
+                const isParty = meId !== undefined && (meId === s.fromUserId || meId === s.toUserId)
+                return (
                 <li
                     key={`${s.fromUserId}-${s.toUserId}-${s.amount}`}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
@@ -44,7 +50,8 @@ export function SuggestionsList({
                     </p>
                     <Button
                         size="sm"
-                        disabled={record.isPending}
+                        disabled={record.isPending || !isParty}
+                        title={isParty ? undefined : t('groups.onlyPartyCanConfirm')}
                         onClick={() => {
                             record.mutate(
                                 {
@@ -64,7 +71,8 @@ export function SuggestionsList({
                         {record.isPending ? t('groups.recording') : t('groups.markPaid')}
                     </Button>
                 </li>
-            ))}
+                )
+            })}
         </ul>
     )
 }

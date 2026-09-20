@@ -117,8 +117,13 @@ export function useJoinGroup() {
                 throw toApiError(error)
             }
         },
-        onSuccess: () => {
+        onSuccess: (group) => {
             void queryClient.invalidateQueries({ queryKey: queryKeys.groups })
+            // Vừa vào nhóm: detail/members/summary của nhóm này phải refetch ngay,
+            // không thì UI đọc cache TanStack cũ và báo không phải member oan.
+            void queryClient.invalidateQueries({ queryKey: queryKeys.group(group.id) })
+            void queryClient.invalidateQueries({ queryKey: queryKeys.groupMembers(group.id) })
+            void queryClient.invalidateQueries({ queryKey: queryKeys.groupSummary(group.id) })
         },
     })
 }

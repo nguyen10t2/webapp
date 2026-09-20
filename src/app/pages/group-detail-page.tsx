@@ -216,7 +216,7 @@ export function GroupDetailPage() {
                         refreshing={summaryFetching}
                         onRefresh={() => void queryClient.invalidateQueries({ queryKey: queryKeys.groupSummary(id) })}
                     >
-                        <SummaryPanel groupId={id} currency={group.data.defaultCurrency} />
+                        <SummaryPanel groupId={id} currency={group.data.defaultCurrency} meId={me.data?.id} />
                     </SectionHeader>
 
                     <SectionHeader

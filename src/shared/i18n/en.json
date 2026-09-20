@@ -100,6 +100,7 @@
         "recorded": "Repayment recorded.",
         "markPaid": "Paid",
         "recording": "Recording…",
+        "onlyPartyCanConfirm": "Only the payer or receiver can confirm this repayment.",
         "memberCount": "{{n}} members",
         "inviteCode": "Invite code",
         "copyInvite": "Copy invite code",
@@ -198,6 +199,7 @@
         "USER_NOT_IN_GROUP": "Someone is not in this group.",
         "BAD_REQUEST": "Invalid split data.",
         "DELETE_PERMISSION_DENIED": "You cannot delete this item.",
+        "NOT_SETTLEMENT_PARTY": "Only the payer or receiver can record this repayment.",
         "NETWORK_ERROR": "Cannot reach the server. Check your network and retry.",
         "UNKNOWN_ERROR": "Something went wrong. Please retry."
     }

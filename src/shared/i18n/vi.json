@@ -100,6 +100,7 @@
         "recorded": "Đã ghi nhận trả nợ",
         "markPaid": "Đã trả",
         "recording": "Đang ghi…",
+        "onlyPartyCanConfirm": "Chỉ người trả hoặc người nhận mới được xác nhận giao dịch này.",
         "memberCount": "{{n}} thành viên",
         "inviteCode": "Mã mời",
         "copyInvite": "Chép mã mời",
@@ -198,6 +199,7 @@
         "USER_NOT_IN_GROUP": "Có người không ở trong nhóm.",
         "BAD_REQUEST": "Dữ liệu chia tiền chưa hợp lệ.",
         "DELETE_PERMISSION_DENIED": "Bạn không có quyền xóa mục này.",
+        "NOT_SETTLEMENT_PARTY": "Chỉ người trả hoặc người nhận mới được ghi nhận giao dịch này.",
         "NETWORK_ERROR": "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
         "UNKNOWN_ERROR": "Có lỗi xảy ra. Thử lại sau."
     }
