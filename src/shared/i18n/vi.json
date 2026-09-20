@@ -125,7 +125,19 @@
         "noDirectDebt": "Hai bạn không có công nợ trực tiếp.",
         "youOweThem": "Bạn nợ {{name}}",
         "theyOweYou": "{{name}} nợ bạn",
-        "you": "Bạn"
+        "you": "Bạn",
+        "leaveGroup": "Rời nhóm",
+        "leaveConfirmDesc": "Bạn không thể hoàn tác. Dữ liệu chi tiêu của bạn sẽ được giữ lại. Số dư của bạn trong nhóm phải bằng 0 để rời nhóm.",
+        "leave": "Rời nhóm",
+        "cancel": "Huỷ",
+        "deleteGroup": "Xoá nhóm",
+        "deleteConfirmDesc": "Nhóm và toàn bộ chi tiêu sẽ bị xoá vĩnh viễn và không thể phục hồi.",
+        "settings": "Cài đặt nhóm",
+        "settingsDesc": "Quản lý tư cách thành viên và quyền trong nhóm.",
+        "mustPromoteAdmin": "Bạn là Quản trị viên duy nhất. Vui lòng chỉ định một thành viên khác làm Quản trị viên trước khi rời nhóm.",
+        "leaveSuccess": "Rời nhóm thành công.",
+        "deleteSuccess": "Xoá nhóm thành công.",
+        "promoteToAdmin": "Chỉ định làm Admin"
     },
     "expenses": {
         "title": "Chi tiêu",

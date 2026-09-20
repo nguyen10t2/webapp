@@ -125,7 +125,19 @@
         "noDirectDebt": "No direct debts between you two.",
         "youOweThem": "You owe {{name}}",
         "theyOweYou": "{{name}} owes you",
-        "you": "You"
+        "you": "You",
+        "leaveGroup": "Leave group",
+        "leaveConfirmDesc": "This action cannot be undone. Your expense history will be preserved. Your net balance in the group must be 0 to leave.",
+        "leave": "Leave group",
+        "cancel": "Cancel",
+        "deleteGroup": "Delete group",
+        "deleteConfirmDesc": "The group and all associated expenses will be permanently deleted and cannot be recovered.",
+        "settings": "Group settings",
+        "settingsDesc": "Manage your membership and permissions in this group.",
+        "mustPromoteAdmin": "You are the only Admin. Please promote another member to Admin before leaving.",
+        "leaveSuccess": "Left group successfully.",
+        "deleteSuccess": "Group deleted successfully.",
+        "promoteToAdmin": "Promote to Admin"
     },
     "expenses": {
         "title": "Expenses",
