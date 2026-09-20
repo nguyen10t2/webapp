@@ -137,7 +137,11 @@
         "mustPromoteAdmin": "You are the only Admin. Please promote another member to Admin before leaving.",
         "leaveSuccess": "Left group successfully.",
         "deleteSuccess": "Group deleted successfully.",
-        "promoteToAdmin": "Promote to Admin"
+        "promoteToAdmin": "Promote new Admin",
+        "promoteDesc": "Assign Admin role to another member in the group.",
+        "selectMember": "Select member",
+        "promote": "Promote",
+        "promoteSuccess": "Member promoted to Admin successfully."
     },
     "expenses": {
         "title": "Expenses",

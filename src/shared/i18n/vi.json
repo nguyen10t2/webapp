@@ -137,7 +137,11 @@
         "mustPromoteAdmin": "Bạn là Quản trị viên duy nhất. Vui lòng chỉ định một thành viên khác làm Quản trị viên trước khi rời nhóm.",
         "leaveSuccess": "Rời nhóm thành công.",
         "deleteSuccess": "Xoá nhóm thành công.",
-        "promoteToAdmin": "Chỉ định làm Admin"
+        "promoteToAdmin": "Chỉ định Quản trị viên mới",
+        "promoteDesc": "Chuyển quyền Quản trị viên cho một thành viên khác trong nhóm.",
+        "selectMember": "Chọn thành viên",
+        "promote": "Chỉ định",
+        "promoteSuccess": "Đã chỉ định Quản trị viên thành công."
     },
     "expenses": {
         "title": "Chi tiêu",

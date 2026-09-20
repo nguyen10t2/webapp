@@ -19,6 +19,7 @@ import { isGroupAdmin } from '@/domain/groups'
 import {
     useDeleteGroup,
     useLeaveGroup,
+    useChangeMemberRole,
 } from '@/features/groups/api'
 import {
     Dialog,
@@ -115,10 +116,14 @@ function GroupActionMenu({ groupId, admin, members }: { groupId: string, admin: 
     const navigate = useNavigate()
     const leaveGroup = useLeaveGroup()
     const deleteGroup = useDeleteGroup()
+    const changeRole = useChangeMemberRole(groupId)
     const [open, setOpen] = useState(false)
+    const [selectedPromotee, setSelectedPromotee] = useState<string>('')
+
     const activeMembers = members.filter(m => !m.leftAt)
     const isLastMember = activeMembers.length === 1
     const otherAdmins = activeMembers.filter(m => m.role === 'ADMIN' || m.role === 'OWNER').length > (admin ? 1 : 0)
+    const candidateMembers = activeMembers.filter(m => m.role !== 'ADMIN' && m.role !== 'OWNER')
 
     const onLeave = () => {
         leaveGroup.mutate(groupId, {
@@ -146,6 +151,22 @@ function GroupActionMenu({ groupId, admin, members }: { groupId: string, admin: 
         })
     }
 
+    const onPromote = () => {
+        if (!selectedPromotee) return
+        changeRole.mutate(
+            { userId: selectedPromotee, role: 'ADMIN' },
+            {
+                onSuccess: () => {
+                    toast.success(t('groups.promoteSuccess', 'Promoted member to Admin successfully'))
+                    setSelectedPromotee('')
+                },
+                onError: (err: any) => {
+                    toast.error(err?.response?.data?.message || t('errors.UNKNOWN_ERROR'))
+                },
+            }
+        )
+    }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -160,13 +181,43 @@ function GroupActionMenu({ groupId, admin, members }: { groupId: string, admin: 
                         {t('groups.settingsDesc', 'Manage your membership in this group.')}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex flex-col gap-3 py-4">
+                <div className="flex flex-col gap-4 py-4">
+                    {admin && candidateMembers.length > 0 && (
+                        <div className="rounded-lg border border-border p-4 bg-muted/30">
+                            <h4 className="font-medium text-sm mb-1">{t('groups.promoteToAdmin')}</h4>
+                            <p className="text-xs text-muted-foreground mb-3">
+                                {t('groups.promoteDesc', 'Assign Admin role to another member.')}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={selectedPromotee}
+                                    onChange={(e) => setSelectedPromotee(e.target.value)}
+                                    className="h-9 flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                >
+                                    <option value="">-- {t('groups.selectMember', 'Select member')} --</option>
+                                    {candidateMembers.map((m) => (
+                                        <option key={m.userId} value={m.userId}>
+                                            {m.fullName}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Button
+                                    size="sm"
+                                    onClick={onPromote}
+                                    disabled={!selectedPromotee || changeRole.isPending}
+                                >
+                                    {t('groups.promote', 'Promote')}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="rounded-lg border border-border p-4 bg-muted/50">
                         <h4 className="font-medium text-sm mb-1">{t('groups.leaveGroup')}</h4>
                         <p className="text-xs text-muted-foreground mb-3">{t('groups.leaveConfirmDesc')}</p>
                         
                         {(admin && !otherAdmins && !isLastMember) ? (
-                            <p className="text-sm font-medium text-destructive">{t('groups.mustPromoteAdmin', 'You must promote another admin before leaving.')}</p>
+                            <p className="text-sm font-medium text-destructive">{t('groups.mustPromoteAdmin')}</p>
                         ) : (
                             <Button variant="destructive" onClick={onLeave} className="w-full sm:w-auto" disabled={leaveGroup.isPending}>
                                 <LogOut className="mr-2 size-4" />
