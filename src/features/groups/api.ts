@@ -5,7 +5,7 @@ import type { ApiError } from '@/infrastructure/api/errors'
 import { useAuthStore } from '@/infrastructure/auth/auth-store'
 import { queryKeys } from '@/infrastructure/query/keys'
 import type { AddMemberInput, CreateGroupInput, JoinGroupInput } from '@/domain/groups'
-import type { Group, GroupMember, GroupSummary } from '@/domain/groups'
+import type { Group, GroupMember, GroupSummary, GroupRole } from '@/domain/groups'
 import type { AuthUser } from '@/domain/auth'
 
 /** Danh sách nhóm mình tham gia (kèm `userBalance` từng nhóm). */
@@ -160,6 +160,46 @@ export function useLookupUserByEmail() {
             } catch (error) {
                 throw toApiError(error)
             }
+        },
+    })
+}
+
+export function useLeaveGroup() {
+    const queryClient = useQueryClient()
+    return useMutation<void, Error, string>({
+        mutationFn: async (groupId) => {
+            const res = await api.post<void>(`/groups/${groupId}/leave`)
+            return res.data
+        },
+        onSuccess: (_, groupId) => {
+            queryClient.invalidateQueries({ queryKey: ['groups'] })
+            queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+        },
+    })
+}
+
+export function useDeleteGroup() {
+    const queryClient = useQueryClient()
+    return useMutation<void, Error, string>({
+        mutationFn: async (groupId) => {
+            const res = await api.delete<void>(`/groups/${groupId}`)
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['groups'] })
+        },
+    })
+}
+
+export function useChangeMemberRole(groupId: string) {
+    const queryClient = useQueryClient()
+    return useMutation<void, Error, { userId: string; role: GroupRole }>({
+        mutationFn: async ({ userId, role }) => {
+            const res = await api.put<void>(`/groups/${groupId}/members/${userId}/role`, { role })
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
         },
     })
 }

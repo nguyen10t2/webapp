@@ -47,6 +47,7 @@ export interface GroupMember {
     fullName: string
     role: GroupRole
     joinedAt: string
+    leftAt?: string | null
 }
 
 /** Quyền UI gating (server vẫn enforce — đây chỉ để ẩn/hiện nút). */

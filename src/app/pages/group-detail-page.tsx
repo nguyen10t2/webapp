@@ -13,7 +13,25 @@ import { MemberList } from '@/features/groups/member-list'
 import { MemberDebtDialog } from '@/features/groups/member-debt-dialog'
 import { NewExpenseDialog } from '@/features/expenses/new-expense-dialog'
 import { initials } from '@/shared/lib/names'
-import { isGroupAdmin, type GroupMember } from '@/domain/groups'
+import { type GroupMember } from '@/domain/groups'
+import { isGroupAdmin } from '@/domain/groups'
+
+import {
+    useDeleteGroup,
+    useLeaveGroup,
+} from '@/features/groups/api'
+import {
+    Dialog,
+    DialogTrigger,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+    DialogClose
+} from '@/shared/ui/dialog'
+import { Settings, LogOut, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { queryKeys } from '@/infrastructure/query/keys'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/field'
@@ -91,6 +109,93 @@ function InlineInviteCode({ code }: { code: string }) {
  * Chi tiết nhóm 1 màn hình: header band (mã mời gọn cạnh tên) + layout 2 cột
  * (sidebar thành viên sticky trái, nội dung phải). Không tabs, không cuộn tìm.
  */
+
+function GroupActionMenu({ groupId, admin, members }: { groupId: string, admin: boolean, members: GroupMember[] }) {
+    const { t } = useTranslation()
+    const navigate = useNavigate()
+    const leaveGroup = useLeaveGroup()
+    const deleteGroup = useDeleteGroup()
+    const [open, setOpen] = useState(false)
+    const activeMembers = members.filter(m => !m.leftAt)
+    const isLastMember = activeMembers.length === 1
+    const otherAdmins = activeMembers.filter(m => m.role === 'ADMIN' || m.role === 'OWNER').length > (admin ? 1 : 0)
+
+    const onLeave = () => {
+        leaveGroup.mutate(groupId, {
+            onSuccess: () => {
+                toast.success(t('groups.leaveSuccess', 'Left group successfully'))
+                setOpen(false)
+                navigate('/')
+            },
+            onError: (err: any) => {
+                toast.error(err?.response?.data?.message || t('errors.UNKNOWN_ERROR'))
+            }
+        })
+    }
+
+    const onDelete = () => {
+        deleteGroup.mutate(groupId, {
+            onSuccess: () => {
+                toast.success(t('groups.deleteSuccess', 'Group deleted successfully'))
+                setOpen(false)
+                navigate('/')
+            },
+            onError: (err: any) => {
+                toast.error(err?.response?.data?.message || t('errors.UNKNOWN_ERROR'))
+            }
+        })
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-8 rounded-full border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground shadow-sm" aria-label="Settings">
+                    <Settings className="size-4" aria-hidden="true" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{t('groups.settings', 'Group Settings')}</DialogTitle>
+                    <DialogDescription>
+                        {t('groups.settingsDesc', 'Manage your membership in this group.')}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-3 py-4">
+                    <div className="rounded-lg border border-border p-4 bg-muted/50">
+                        <h4 className="font-medium text-sm mb-1">{t('groups.leaveGroup')}</h4>
+                        <p className="text-xs text-muted-foreground mb-3">{t('groups.leaveConfirmDesc')}</p>
+                        
+                        {(admin && !otherAdmins && !isLastMember) ? (
+                            <p className="text-sm font-medium text-destructive">{t('groups.mustPromoteAdmin', 'You must promote another admin before leaving.')}</p>
+                        ) : (
+                            <Button variant="destructive" onClick={onLeave} className="w-full sm:w-auto" disabled={leaveGroup.isPending}>
+                                <LogOut className="mr-2 size-4" />
+                                {t('groups.leave')}
+                            </Button>
+                        )}
+                    </div>
+                    
+                    {(admin && isLastMember) && (
+                        <div className="rounded-lg border border-destructive/20 p-4 bg-destructive/10">
+                            <h4 className="font-medium text-sm text-destructive mb-1">{t('groups.deleteGroup')}</h4>
+                            <p className="text-xs text-destructive/80 mb-3">{t('groups.deleteConfirmDesc')}</p>
+                            <Button variant="destructive" onClick={onDelete} className="w-full sm:w-auto" disabled={deleteGroup.isPending}>
+                                <Trash2 className="mr-2 size-4" />
+                                {t('groups.deleteGroup')}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">{t('groups.cancel')}</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export function GroupDetailPage() {
     const { t } = useTranslation()
     const { id = '' } = useParams()
@@ -147,9 +252,18 @@ export function GroupDetailPage() {
                         <ArrowLeft className="size-4" aria-hidden="true" />
                         {t('groups.backToGroups')}
                     </Link>
-                    <div className="mt-2 flex flex-wrap items-center gap-3">
-                        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{group.data.name}</h1>
-                        <InlineInviteCode code={group.data.inviteCode} />
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{group.data.name}</h1>
+                            <InlineInviteCode code={group.data.inviteCode} />
+                        </div>
+                        {members.data && (
+                            <GroupActionMenu 
+                                groupId={id} 
+                                admin={admin} 
+                                members={members.data} 
+                            />
+                        )}
                     </div>
                     {group.data.description && (
                         <p className="mt-1 max-w-2xl text-base text-muted-foreground">{group.data.description}</p>
