@@ -173,7 +173,8 @@ export function useLeaveGroup() {
         },
         onSuccess: (_, groupId) => {
             queryClient.invalidateQueries({ queryKey: ['groups'] })
-            queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.groupMembers(groupId) })
+            queryClient.invalidateQueries({ queryKey: queryKeys.groups })
         },
     })
 }
@@ -199,7 +200,8 @@ export function useChangeMemberRole(groupId: string) {
             return res.data
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.groupMembers(groupId) })
+            queryClient.invalidateQueries({ queryKey: queryKeys.groups })
         },
     })
 }
