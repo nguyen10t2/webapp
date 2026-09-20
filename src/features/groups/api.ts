@@ -168,7 +168,7 @@ export function useLeaveGroup() {
     const queryClient = useQueryClient()
     return useMutation<void, Error, string>({
         mutationFn: async (groupId) => {
-            const res = await api.post<void>(`/groups/${groupId}/leave`)
+            const res = await api.post<void>(groupEndpoints.leave(groupId))
             return res.data
         },
         onSuccess: (_, groupId) => {
@@ -182,7 +182,7 @@ export function useDeleteGroup() {
     const queryClient = useQueryClient()
     return useMutation<void, Error, string>({
         mutationFn: async (groupId) => {
-            const res = await api.delete<void>(`/groups/${groupId}`)
+            const res = await api.delete<void>(groupEndpoints.byId(groupId))
             return res.data
         },
         onSuccess: () => {
@@ -195,7 +195,7 @@ export function useChangeMemberRole(groupId: string) {
     const queryClient = useQueryClient()
     return useMutation<void, Error, { userId: string; role: GroupRole }>({
         mutationFn: async ({ userId, role }) => {
-            const res = await api.put<void>(`/groups/${groupId}/members/${userId}/role`, { role })
+            const res = await api.put<void>(groupEndpoints.memberRole(groupId, userId), { role })
             return res.data
         },
         onSuccess: () => {

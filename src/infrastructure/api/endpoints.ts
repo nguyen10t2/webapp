@@ -37,6 +37,9 @@ export const groupEndpoints = {
     byId: (id: string) => `/api/groups/${encodeURIComponent(id)}`,
     summary: (id: string) => `/api/groups/${encodeURIComponent(id)}/summary`,
     members: (id: string) => `/api/groups/${encodeURIComponent(id)}/members`,
+    leave: (id: string) => `/api/groups/${encodeURIComponent(id)}/leave`,
+    memberRole: (id: string, userId: string) =>
+        `/api/groups/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}/role`,
 } as const
 
 /** Settlements tối thiểu M2 cần (1-click ghi nhận từ suggestion). */
