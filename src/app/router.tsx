@@ -7,7 +7,7 @@ import { RouteError } from '@/app/shell/route-error'
  * Route table. Dùng route `lazy` (không `const X = lazy(...)` ở top-level) để thỏa
  * `react/only-export-components` — file này chỉ export `router` (constant).
  * Phase 1: auth + dashboard placeholder (M2 build dashboard thật).
- * Google callback `{FRONTEND_URL}/login?token=...` được LoginPage đọc `?token=`.
+ * Google callback `{FRONTEND_URL}/login?google=success` được LoginPage đổi cookie lấy token.
  */
 export const router = createBrowserRouter([
     {

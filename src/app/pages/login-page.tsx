@@ -1,25 +1,28 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
-import { useAuthStore } from '@/infrastructure/auth/auth-store'
+import { bootstrapSession } from '@/infrastructure/auth/session'
 import { LoginForm } from '@/features/auth/login-form'
 
 /**
- * Trang đăng nhập. Đọc `?token=` cho Google OAuth callback tương lai
- * (`{FRONTEND_URL}/login?token=...`): có token → vào app + dọn URL sạch.
+ * Trang đăng nhập. Google OAuth callback về `{FRONTEND_URL}/login?google=success`
+ * (backend chỉ set refresh cookie, KHÔNG gửi access token qua URL): thấy flag thì
+ * đổi cookie lấy access token qua `POST /refresh` rồi dọn URL sạch.
  */
 export function LoginPage() {
     const { t } = useTranslation()
     const [params, setParams] = useSearchParams()
-    const setAccessToken = useAuthStore((s) => s.setAccessToken)
 
     useEffect(() => {
-        const token = params.get('token')
-        if (token) {
-            setAccessToken(token)
-            setParams({}, { replace: true })
+        if (params.get('google') !== 'success') return
+        let cancelled = false
+        bootstrapSession().finally(() => {
+            if (!cancelled) setParams({}, { replace: true })
+        })
+        return () => {
+            cancelled = true
         }
-    }, [params, setAccessToken, setParams])
+    }, [params, setParams])
 
     return (
         <div>
